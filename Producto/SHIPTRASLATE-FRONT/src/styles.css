@@ -1,0 +1,412 @@
+:root {
+  font-family: Arial, sans-serif;
+  color: #1f2937;
+  background: #f8fafc;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+}
+
+.app-container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+header {
+  margin-bottom: 24px;
+}
+
+.header-top {
+  
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+nav {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+nav a {
+  text-decoration: none;
+  color: #2563eb;
+  font-weight: 700;
+  padding: 8px 12px;
+  border-radius: 8px;
+  transition: background 0.2s ease;
+}
+
+nav a:hover {
+  background: rgba(37, 99, 235, 0.1);
+}
+
+.page-card,
+.form-card,
+.list-card {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 6px rgba(15, 23, 42, 0.08);
+  margin-bottom: 20px;
+}
+
+.page-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.button {
+  display: inline-block;
+  background: #2563eb;
+  color: white;
+  padding: 12px 18px;
+  border-radius: 8px;
+  text-decoration: none;
+}
+
+.button-secondary {
+  background: #475569;
+}
+
+label {
+  display: block;
+  margin-bottom: 14px;
+  font-weight: 600;
+}
+
+input {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  margin-top: 6px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+}
+
+button {
+  padding: 12px 18px;
+  border: none;
+  color: white;
+  background: #2563eb;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #1d4ed8;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+thead th {
+  text-align: left;
+  padding: 10px 8px;
+  border-bottom: 2px solid #e2e8f0;
+}
+
+tbody td {
+  padding: 12px 8px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.error {
+  color: #b91c1c;
+}
+
+/* Estilos para la página de detalles del envío */
+.shipment-details {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.detail-section {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+}
+
+.detail-section h3 {
+  margin: 0 0 16px 0;
+  color: #1e293b;
+  font-size: 1.2em;
+}
+
+.detail-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 12px;
+}
+
+.detail-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detail-item strong {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.9em;
+}
+
+.detail-item span {
+  color: #1f2937;
+}
+
+.containers-list,
+.amounts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.container-item,
+.amount-item {
+  background: white;
+  border-radius: 6px;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+}
+
+.actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+.action-link:hover {
+  text-decoration: underline;
+}
+
+/* Estilos para la página de preview del EDI */
+.edi-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.preview-section {
+  background: #f8fafc;
+  border-radius: 8px;
+  padding: 20px;
+  border: 1px solid #e2e8f0;
+}
+
+.preview-section h3 {
+  margin: 0 0 14px 0;
+  color: #1e293b;
+  font-size: 1.2em;
+}
+
+.preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 12px;
+}
+
+.preview-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.preview-item strong {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.9em;
+}
+
+.preview-item span {
+  color: #1f2937;
+}
+
+.container-preview,
+.amount-preview {
+  background: white;
+  border-radius: 6px;
+  padding: 12px;
+  border: 1px solid #e2e8f0;
+  margin-bottom: 8px;
+}
+
+.preview-actions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 24px;
+}
+
+.button-primary {
+  background: #2563eb;
+  color: white;
+  border: none;
+  padding: 12px 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.button-primary:hover {
+  background: #1d4ed8;
+}
+
+.button-primary:disabled {
+  background: #9ca3af;
+  cursor: not-allowed;
+}
+
+/* Estilos para la tabla de mensajes EDI */
+.edi-messages-table {
+  margin-bottom: 24px;
+}
+
+.edi-messages-table h3 {
+  margin: 0 0 20px 0;
+  color: #1e293b;
+  font-size: 1.3em;
+}
+
+.table-container {
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  overflow-x: auto;
+  max-width: 100%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.edi-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95em;
+  line-height: 1.4;
+}
+
+.edi-table thead th {
+  background: #f8fafc;
+  color: #374151;
+  font-weight: 600;
+  text-align: left;
+  padding: 16px 12px;
+  border-bottom: 2px solid #e2e8f0;
+  position: sticky;
+  top: 0;
+  white-space: nowrap;
+  font-size: 1em;
+}
+
+.edi-table tbody td {
+  padding: 14px 12px;
+  border-bottom: 1px solid #f1f5f9;
+  vertical-align: middle;
+}
+
+.edi-table tbody tr:nth-child(even) {
+  background: #f8fafc;
+}
+
+.edi-table tbody tr:hover {
+  background: #f1f5f9;
+}
+
+.edi-table tbody td {
+  max-width: 220px;
+  min-width: 100px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Anchos específicos para columnas importantes */
+.edi-table tbody td:nth-child(11), /* Buque */
+.edi-table tbody td:nth-child(12) { /* Transportista */
+  min-width: 140px;
+  max-width: 180px;
+}
+
+.edi-table tbody td:nth-child(6), /* Fecha Emisión */
+.edi-table tbody td:nth-child(7), /* ETA */
+.edi-table tbody td:nth-child(8) { /* ETD */
+  min-width: 120px;
+  max-width: 140px;
+}
+
+/* Estilos para inputs en tabla */
+.table-input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 0.95em;
+  background: white;
+  transition: border-color 0.2s ease;
+  line-height: 1.4;
+}
+
+.table-input:focus {
+  outline: none;
+  border-color: #2563eb;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.table-input.input-warning {
+  border-color: #f59e0b;
+  background: #fef3c7;
+}
+
+/* Estilos específicos para inputs de fecha */
+.table-input[type="date"] {
+  font-family: monospace;
+  letter-spacing: 0.5px;
+}
+
+/* Estilos para alertas */
+.alert {
+  padding: 20px 24px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+  border-left: 4px solid;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.alert-warning {
+  background: #fef3c7;
+  border-color: #f59e0b;
+  color: #92400e;
+}
+
+.alert h3 {
+  margin: 0 0 12px 0;
+  color: #92400e;
+  font-size: 1.2em;
+  font-weight: 600;
+}
+
+.alert ul {
+  margin: 12px 0;
+  padding-left: 24px;
+}
+
+.alert li {
+  margin-bottom: 6px;
+  line-height: 1.4;
+}
+
+.alert p {
+  margin: 8px 0;
+  line-height: 1.5;
+}
