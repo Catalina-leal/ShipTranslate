@@ -1,5 +1,7 @@
 import { useState } from 'react';
 
+// Formulario base para crear registros manuales de shipment.
+// Complementa el flujo automatico de carga/parseo EDI.
 function ShipmentForm({ onSave }) {
   const [origin, setOrigin] = useState('');
   const [destination, setDestination] = useState('');

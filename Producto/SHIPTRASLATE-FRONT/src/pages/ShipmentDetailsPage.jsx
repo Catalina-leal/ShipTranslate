@@ -1,249 +1,965 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import {
+  useParams,
+  useNavigate,
+  useLocation,
+} from 'react-router-dom';
+
 import { fetchShipment } from '../services/api.js';
 
+// Vista de detalle de un BL/mensaje EDI.
+// Muestra informacion logistica, partes, rutas, mercancia y contenedores.
 function ShipmentDetailsPage() {
+
   const { id } = useParams();
-  const navigate = useNavigate();
-  const [shipment, setShipment] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+
+  const navigate =
+    useNavigate();
+
+  const location =
+    useLocation();
+
+  const [shipment, setShipment] =
+    useState(null);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState(null);
+
+  /* =========================
+     HELPERS
+  ========================= */
+
+  function getLocationValue(
+    value
+  ) {
+    // Normaliza ubicaciones que pueden venir como string o como objeto {code, name}.
+
+    if (!value) return '-';
+
+    if (
+      typeof value === 'string'
+    ) {
+
+      const parts =
+        value.split(':::');
+
+      return (
+        parts[1] ||
+        parts[0] ||
+        '-'
+      );
+    }
+
+    return (
+      value?.name ||
+      value?.code ||
+      '-'
+    );
+  }
+
+  function formatDate(date) {
+
+    if (!date) return '-';
+
+    try {
+
+      return new Date(
+        date
+      ).toLocaleDateString();
+
+    } catch {
+
+      return '-';
+    }
+  }
+
+  function getPrimaryTransportLeg(
+    message
+  ) {
+
+    if (
+      !message?.transportLegs
+        ?.length
+    ) {
+      return null;
+    }
+
+    return message.transportLegs.reduce(
+      (best, leg) => {
+
+        if (
+          !best ||
+          (leg.sequence || 0) >
+            (best.sequence || 0)
+        ) {
+          return leg;
+        }
+
+        return best;
+      },
+      null
+    );
+  }
+
+  function getTransportData(
+    message
+  ) {
+    // Centraliza la lectura de buque, viaje, Lloyd, ETA, ETD y carrier.
+
+    const primaryLeg =
+      getPrimaryTransportLeg(
+        message
+      );
+
+    return {
+
+      vessel:
+        message?.transport
+          ?.selectedVessel ||
+        message?.transport
+          ?.vessel ||
+        primaryLeg?.vessel ||
+        '-',
+
+      voyage:
+        message?.transport
+          ?.selectedVoyage ||
+        message?.transport
+          ?.voyage ||
+        primaryLeg?.voyage ||
+        '-',
+
+      lloyd:
+        message?.transport
+          ?.selectedLloyd ||
+        message?.transport
+          ?.lloyd ||
+        message?.transport
+          ?.loyd ||
+        primaryLeg?.lloyd ||
+        primaryLeg?.loyd ||
+        '-',
+
+      eta:
+        message?.transport
+          ?.selectedETA ||
+        message?.dates?.eta ||
+        primaryLeg
+          ?.arrivalDate ||
+        '',
+
+      etd:
+        message?.transport
+          ?.selectedETD ||
+        message?.dates?.etd ||
+        primaryLeg
+          ?.departureDate ||
+        '',
+
+      carrier:
+        message?.transport
+          ?.selectedCarrier ||
+        message?.transport
+          ?.carrier ||
+        primaryLeg?.carrier ||
+        '-',
+    };
+  }
+
+  /* =========================
+     LOAD
+  ========================= */
 
   useEffect(() => {
+
+    if (
+      location?.state
+        ?.shipment
+    ) {
+
+      setShipment(
+        location.state
+          .shipment
+      );
+
+      setError(null);
+
+      setLoading(false);
+
+      return;
+    }
+
     loadShipment();
+
   }, [id]);
 
   async function loadShipment() {
+
     setLoading(true);
+
     try {
-      const data = await fetchShipment(id);
+
+      const data =
+        await fetchShipment(id);
+
       setShipment(data);
+
       setError(null);
+
     } catch (err) {
-      setError('No se pudo cargar el envío.');
+
+      setError(
+        'No se pudo cargar el envío.'
+      );
+
     } finally {
+
       setLoading(false);
     }
   }
 
+  /* =========================
+     ACTIONS
+  ========================= */
+
+  function handleConvertToEDI() {
+
+    alert(
+      'Conversión a EDI iniciada.'
+    );
+  }
+
+  function handleReturnToEdi() {
+
+    const preview =
+      location?.state
+        ?.previewReturn;
+
+    if (preview) {
+
+      navigate(
+        '/edi-preview',
+        {
+          state: preview,
+        }
+      );
+    }
+  }
+
+  function handleDownloadJson() {
+
+    const content =
+      JSON.stringify(
+        shipment,
+        null,
+        2
+      );
+
+    const blob =
+      new Blob(
+        [content],
+        {
+          type: 'application/json',
+        }
+      );
+
+    const url =
+      URL.createObjectURL(
+        blob
+      );
+
+    const a =
+      document.createElement(
+        'a'
+      );
+
+    a.href = url;
+
+    a.download = `${
+      shipment.documentNumber ||
+      shipment.referenceNumber ||
+      'shipment'
+    }.json`;
+
+    a.click();
+
+    URL.revokeObjectURL(
+      url
+    );
+  }
+
+  /* =========================
+     LOADING
+  ========================= */
+
   if (loading) {
+
     return (
+
       <section className="page-card">
-        <h2>Detalles del envío</h2>
-        <p>Cargando...</p>
+
+        <h2>
+          Cargando envío...
+        </h2>
+
       </section>
     );
   }
 
-  if (error || !shipment) {
+  /* =========================
+     ERROR
+  ========================= */
+
+  if (
+    error ||
+    !shipment
+  ) {
+
     return (
+
       <section className="page-card">
-        <h2>Detalles del envío</h2>
-        <p className="error">{error || 'Envío no encontrado'}</p>
-        <button onClick={() => navigate('/shipments')}>Volver a la lista</button>
+
+        <h2>
+          Error
+        </h2>
+
+        <p className="error">
+          {error ||
+            'Envío no encontrado'}
+        </p>
+
+        <button
+          className="button-secondary"
+          onClick={() =>
+            navigate(
+              '/shipments'
+            )
+          }
+        >
+          Volver
+        </button>
+
       </section>
     );
   }
+
+  const transportData =
+    getTransportData(
+      shipment
+    );
+
+  const containers =
+    shipment?.equipment
+      ?.containers ||
+    shipment?.containers ||
+    [];
 
   return (
-    <section className="page-card">
-      <h2>Detalles del envío</h2>
 
-      {shipment.isMultipleMessages ? (
-        // Vista de tabla para múltiples mensajes EDI
-        <div className="edi-messages-table">
-          <h3>Mensajes EDI ({shipment.ediMessages?.length || 0})</h3>
-          <div className="table-container">
-            <table className="edi-table">
-              <thead>
-                <tr>
-                  <th>N° BL</th>
-                  <th>Origen</th>
-                  <th>Destino</th>
-                  <th>Nombre doc.</th>
-                  <th>Peso (kg)</th>
-                  <th>Estado</th>
-                  <th>Fecha Documento</th>
-                  <th>ETA</th>
-                  <th>ETD</th>
-                  <th>Viaje</th>
-                  <th>Loyd</th>
-                  <th>Buque</th>
-                  <th>Transportista</th>
-                  <th>Descripción</th>
-                  <th>Paquetes</th>
-                  <th>Contenedores</th>
-                </tr>
-              </thead>
-              <tbody>
-                {shipment.ediMessages?.map((message, index) => (
-                  <tr key={index}>
-                    <td>{message.referenceNumber || message.documentNumber || '-'}</td>
-                    <td>{message.origin || '-'}</td>
-                    <td>{message.destination || '-'}</td>
-                    <td>{message.client || '-'}</td>
-                    <td>{message.weight || 0}</td>
-                    <td>{message.status || '-'}</td>
-                    <td>{message.dates?.documentDate ? new Date(message.dates.documentDate).toLocaleDateString() : '-'}</td>
-                    <td>{message.dates?.eta ? new Date(message.dates.eta).toLocaleDateString() : '-'}</td>
-                    <td>{message.dates?.etd ? new Date(message.dates.etd).toLocaleDateString() : '-'}</td>
-                    <td>{message.transport?.voyage || '-'}</td>
-                    <td>{message.transport?.loyd || '-'}</td>
-                    <td>{message.transport?.vessel || '-'}</td>
-                    <td>{message.transport?.carrier || '-'}</td>
-                    <td>{message.goods?.description || '-'}</td>
-                    <td>{message.goods?.packages || '-'}</td>
-                    <td>
-                      {message.containers && message.containers.length > 0
-                        ? message.containers.map(c => `${c.number} (${c.type})`).join(', ')
-                        : '-'
-                      }
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+    <section className="shipment-details-page modern-details-page">
+
+      {/* HERO */}
+
+      <div className="details-hero">
+
+        <div>
+
+          <div className="hero-chip">
+            EDI MARÍTIMO
           </div>
+
+          <h1>
+            {
+              shipment.referenceNumber ||
+              shipment.documentNumber ||
+              'Shipment'
+            }
+          </h1>
+
+          <p>
+            Información logística,
+            transporte marítimo,
+            contenedores y datos
+            estructurados EDI.
+          </p>
+
         </div>
-      ) : (
-        // Vista tradicional para envío único
-        <div className="shipment-details">
-          <div className="detail-section">
-            <h3>Información General</h3>
-            <div className="detail-grid">
-              <div className="detail-item">
-                <strong>Número de Documento:</strong> {shipment.documentNumber}
-              </div>
-              <div className="detail-item">
-                <strong>Origen:</strong> {shipment.origin}
-              </div>
-              <div className="detail-item">
-                <strong>Destino:</strong> {shipment.destination}
-              </div>
-              <div className="detail-item">
-                <strong>Cliente:</strong> {shipment.client}
-              </div>
-              <div className="detail-item">
-                <strong>Peso (kg):</strong> {shipment.weight}
-              </div>
-              <div className="detail-item">
-                <strong>Estado:</strong> {shipment.status}
-              </div>
-              <div className="detail-item">
-                <strong>Moneda:</strong> {shipment.currency}
-              </div>
-            </div>
-          </div>
 
-          <div className="detail-section">
-            <h3>Fechas</h3>
-            <div className="detail-grid">
-              <div className="detail-item">
-                <strong>Fecha Documento:</strong> {shipment.dates?.documentDate ? new Date(shipment.dates.documentDate).toLocaleDateString() : 'No especificada'}
-              </div>
-              <div className="detail-item">
-                <strong>ETA:</strong> {shipment.dates?.eta ? new Date(shipment.dates.eta).toLocaleDateString() : 'No especificada'}
-              </div>
-              <div className="detail-item">
-                <strong>ETD:</strong> {shipment.dates?.etd ? new Date(shipment.dates.etd).toLocaleDateString() : 'No especificada'}
-              </div>
-            </div>
-          </div>
+        <div className="hero-status">
 
-          {shipment.containers && shipment.containers.length > 0 && (
-            <div className="detail-section">
-              <h3>Contenedores</h3>
-              <div className="containers-list">
-                {shipment.containers.map((container, index) => (
-                  <div key={index} className="container-item">
-                    <div className="detail-grid">
-                      <div className="detail-item">
-                        <strong>Número:</strong> {container.number}
-                      </div>
-                      <div className="detail-item">
-                        <strong>Tipo:</strong> {container.type}
-                      </div>
-                      <div className="detail-item">
-                        <strong>Cantidad:</strong> {container.quantity}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
+          {shipment.isEdited && (
+
+            <div className="status-pill edited">
+              EDI EDITADO
             </div>
+
           )}
 
-          <div className="detail-section">
-            <h3>Transporte</h3>
-            <div className="detail-grid">
-              <div className="detail-item">
-                <strong>Viaje:</strong> {shipment.transport?.voyage || 'No especificado'}
-              </div>
-              <div className="detail-item">
-                <strong>Buque:</strong> {shipment.transport?.vessel || 'No especificado'}
-              </div>
-              <div className="detail-item">
-                <strong>Transportista:</strong> {shipment.transport?.carrier || 'No especificado'}
-              </div>
-            </div>
-          </div>
+          {location?.state
+            ?.previewMode && (
 
-          <div className="detail-section">
-            <h3>Mercancía</h3>
-            <div className="detail-grid">
-              <div className="detail-item">
-                <strong>Descripción:</strong> {shipment.goods?.description || 'No especificada'}
-              </div>
-              <div className="detail-item">
-                <strong>Paquetes:</strong> {shipment.goods?.packages || 'No especificado'}
-              </div>
-              <div className="detail-item">
-                <strong>Tipo de Empaque:</strong> {shipment.goods?.packageType || 'No especificado'}
-              </div>
+            <div className="status-pill preview">
+              PREVIEW
             </div>
-          </div>
 
-          {shipment.amounts && shipment.amounts.length > 0 && (
-            <div className="detail-section">
-              <h3>Montos</h3>
-              <div className="amounts-list">
-                {shipment.amounts.map((amount, index) => (
-                  <div key={index} className="amount-item">
-                    <div className="detail-grid">
-                      <div className="detail-item">
-                        <strong>Tipo:</strong> {amount.type}
-                      </div>
-                      <div className="detail-item">
-                        <strong>Valor:</strong> {amount.value} {shipment.currency}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
           )}
 
-          <div className="detail-section">
-            <h3>Información del Sistema</h3>
-            <div className="detail-grid">
-              <div className="detail-item">
-                <strong>ID:</strong> {shipment._id}
-              </div>
-              <div className="detail-item">
-                <strong>Creado:</strong> {new Date(shipment.createdAt).toLocaleString()}
-              </div>
-              <div className="detail-item">
-                <strong>Actualizado:</strong> {new Date(shipment.updatedAt).toLocaleString()}
-              </div>
-            </div>
-          </div>
         </div>
-      )}
 
-      <div className="actions">
-        <button onClick={() => navigate('/shipments')}>Volver a la lista</button>
-        <button onClick={() => navigate('/shipments/new')}>Cargar otro EDI</button>
       </div>
+
+      {/* ACTIONS */}
+
+      <div className="details-actions">
+
+
+
+        {location?.state
+          ?.previewMode && (
+
+          <button
+            className="button-secondary"
+            onClick={
+              handleReturnToEdi
+            }
+          >
+            Volver al EDI
+          </button>
+
+        )}
+
+        <button
+          className="button-secondary"
+          onClick={
+            handleDownloadJson
+          }
+        >
+          Descargar JSON
+        </button>
+
+        <button
+          className="button-primary"
+          onClick={
+            handleConvertToEDI
+          }
+        >
+          Convertir a EDI
+        </button>
+
+      </div>
+
+      {/* SUMMARY */}
+
+      <div className="summary-grid">
+
+        <div className="summary-card">
+          <span>Buque</span>
+          <strong>
+            {
+              transportData.vessel
+            }
+          </strong>
+
+          <small>
+            Viaje:{' '}
+            {
+              transportData.voyage
+            }
+          </small>
+        </div>
+
+        <div className="summary-card">
+          <span>Lloyd</span>
+
+          <strong>
+            {
+              transportData.lloyd
+            }
+          </strong>
+        </div>
+
+        <div className="summary-card">
+          <span>ETA</span>
+
+          <strong>
+            {formatDate(
+              transportData.eta
+            )}
+          </strong>
+        </div>
+
+        <div className="summary-card">
+          <span>Contenedores</span>
+
+          <strong>
+            {
+              containers.length
+            }
+          </strong>
+        </div>
+
+      </div>
+
+      {/* GRID */}
+
+      <div className="details-grid">
+
+        {/* GENERAL */}
+
+        <div className="detail-card modern-card">
+
+          <div className="card-title">
+            Información General
+          </div>
+
+          <div className="info-grid">
+
+            <div className="info-item">
+              <span>BL</span>
+
+              <strong>
+                {
+                  shipment.referenceNumber ||
+                  shipment.documentNumber ||
+                  '-'
+                }
+              </strong>
+            </div>
+
+            <div className="info-item">
+              <span>Status</span>
+
+              <strong>
+                {
+                  shipment.status ||
+                  '-'
+                }
+              </strong>
+            </div>
+
+            <div className="info-item">
+              <span>Message Type</span>
+
+              <strong>
+                {
+                  shipment.messageType ||
+                  '-'
+                }
+              </strong>
+            </div>
+
+            <div className="info-item">
+              <span>Message ID</span>
+
+              <strong>
+                {
+                  shipment.messageId ||
+                  '-'
+                }
+              </strong>
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* PARTIES */}
+
+        <div className="detail-card modern-card full-width">
+
+          <div className="card-title">
+            Parties
+          </div>
+
+          <div className="parties-grid">
+
+            <div className="party-card">
+
+              <div className="party-header">
+                SHIPPER
+              </div>
+
+              <div className="party-content">
+                {
+                  shipment.parties
+                    ?.shipper ||
+                  '-'
+                }
+              </div>
+
+            </div>
+
+            <div className="party-card">
+
+              <div className="party-header">
+                CONSIGNEE
+              </div>
+
+              <div className="party-content">
+                {
+                  shipment.parties
+                    ?.consignee ||
+                  '-'
+                }
+              </div>
+
+            </div>
+
+            <div className="party-card">
+
+              <div className="party-header">
+                NOTIFY
+              </div>
+
+              <div className="party-content">
+                {
+                  shipment.parties
+                    ?.notify ||
+                  '-'
+                }
+              </div>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* ROUTE */}
+
+        <div className="detail-card modern-card">
+
+          <div className="card-title">
+            Ruta Logística
+          </div>
+
+          <div className="route-box">
+
+            <div className="route-point">
+
+              <span>
+                ORIGEN
+              </span>
+
+              <strong>
+
+                {getLocationValue(
+                  shipment
+                    ?.locations
+                    ?.origin ||
+                    shipment.origin
+                )}
+
+              </strong>
+
+            </div>
+
+            <div className="route-arrow">
+              →
+            </div>
+
+            <div className="route-point">
+
+              <span>
+                DESTINO
+              </span>
+
+              <strong>
+
+                {getLocationValue(
+                  shipment
+                    ?.locations
+                    ?.destination ||
+                    shipment.destination
+                )}
+
+              </strong>
+
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* TRANSPORTE */}
+
+        <div className="detail-card modern-card">
+
+          <div className="card-title">
+            Transporte
+          </div>
+
+          <div className="info-grid">
+
+            <div className="info-item">
+              <span>Buque</span>
+
+              <strong>
+                {
+                  transportData.vessel
+                }
+              </strong>
+            </div>
+
+            <div className="info-item">
+              <span>Viaje</span>
+
+              <strong>
+                {
+                  transportData.voyage
+                }
+              </strong>
+            </div>
+
+            <div className="info-item">
+              <span>Lloyd</span>
+
+              <strong>
+                {
+                  transportData.lloyd
+                }
+              </strong>
+            </div>
+
+            <div className="info-item">
+              <span>Carrier</span>
+
+              <strong>
+                {
+                  transportData.carrier
+                }
+              </strong>
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* LOCATIONS */}
+
+        <div className="detail-card modern-card full-width">
+
+          <div className="card-title">
+            Locations
+          </div>
+
+          <div className="info-grid">
+
+            <div className="info-item">
+              <span>Port Of Loading</span>
+
+              <strong>
+
+                {getLocationValue(
+                  shipment
+                    ?.locations
+                    ?.portOfLoading
+                )}
+
+              </strong>
+            </div>
+
+            <div className="info-item">
+              <span>Port Of Discharge</span>
+
+              <strong>
+
+                {getLocationValue(
+                  shipment
+                    ?.locations
+                    ?.portOfDischarge
+                )}
+
+              </strong>
+            </div>
+
+            <div className="info-item">
+              <span>Reference Location</span>
+
+              <strong>
+
+                {getLocationValue(
+                  shipment
+                    ?.locations
+                    ?.referenceLocation
+                )}
+
+              </strong>
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* GOODS */}
+
+        <div className="detail-card modern-card full-width">
+
+          <div className="card-title">
+            Mercancía
+          </div>
+
+          <div className="goods-grid">
+
+            <div className="info-item">
+              <span>Description</span>
+
+              <strong>
+                {
+                  shipment.goods
+                    ?.description ||
+                  '-'
+                }
+              </strong>
+            </div>
+
+            <div className="info-item">
+              <span>HS Code</span>
+
+              <strong>
+                {
+                  shipment.goods
+                    ?.hsCode ||
+                  '-'
+                }
+              </strong>
+            </div>
+
+            <div className="info-item">
+              <span>Packages</span>
+
+              <strong>
+                {
+                  shipment.goods
+                    ?.packages ||
+                  '-'
+                }
+              </strong>
+            </div>
+
+            <div className="info-item">
+              <span>Gross Weight</span>
+
+              <strong>
+                {
+                  shipment.goods
+                    ?.grossWeight ||
+                  '-'
+                }
+              </strong>
+            </div>
+
+            <div className="info-item">
+              <span>Net Weight</span>
+
+              <strong>
+                {
+                  shipment.goods
+                    ?.netWeight ||
+                  '-'
+                }
+              </strong>
+            </div>
+
+            <div className="info-item">
+              <span>Volume</span>
+
+              <strong>
+                {
+                  shipment.goods
+                    ?.volume ||
+                  '-'
+                }
+              </strong>
+            </div>
+
+          </div>
+
+        </div>
+
+        {/* CONTAINERS */}
+
+        {containers.length >
+          0 && (
+
+          <div className="detail-card modern-card full-width">
+
+            <div className="card-title">
+              Contenedores
+            </div>
+
+            <div className="containers-grid">
+
+              {containers.map(
+                (
+                  container,
+                  index
+                ) => (
+
+                  <div
+                    key={index}
+                    className="container-card modern-container-card"
+                  >
+
+                    <div className="container-number">
+                      {
+                        container.number ||
+                        '-'
+                      }
+                    </div>
+
+                    <div className="container-info">
+
+                      <p>
+                        <strong>
+                          Tipo:
+                        </strong>{' '}
+
+                        {
+                          container.type ||
+                          '-'
+                        }
+                      </p>
+
+                      <p>
+                        <strong>
+                          Peso:
+                        </strong>{' '}
+
+                        {
+                          container.grossWeight ||
+                          '-'
+                        }
+                      </p>
+
+                      <p>
+                        <strong>
+                          Volumen:
+                        </strong>{' '}
+
+                        {
+                          container.volume ||
+                          '-'
+                        }
+                      </p>
+
+                    </div>
+
+                  </div>
+                )
+              )}
+
+            </div>
+
+          </div>
+
+        )}
+
+      </div>
+
     </section>
   );
 }
