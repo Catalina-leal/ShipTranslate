@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<coverage generated="1782317339784" clover="3.2.0">
+  <project timestamp="1782317339784" name="All files">
+    <metrics statements="6" coveredstatements="6" conditionals="4" coveredconditionals="3" methods="5" coveredmethods="5" elements="15" coveredelements="14" complexity="0" loc="6" ncloc="6" packages="1" files="1" classes="1"/>
+    <file name="trackingValidation.js" path="C:\Users\catal\Desktop\Proyecto-tranship\FRONTEND\src\utils\trackingValidation.js">
+      <metrics statements="6" coveredstatements="6" conditionals="4" coveredconditionals="3" methods="5" coveredmethods="5"/>
+      <line num="1" count="1" type="stmt"/>
+      <line num="14" count="1" type="stmt"/>
+      <line num="33" count="67" type="cond" truecount="3" falsecount="1"/>
+      <line num="37" count="6" type="stmt"/>
+      <line num="38" count="66" type="stmt"/>
+      <line num="43" count="3" type="stmt"/>
+    </file>
+  </project>
+</coverage>
